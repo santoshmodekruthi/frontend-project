@@ -5,211 +5,339 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Smart Scheduler Portal</title>
 <style>
-  :root{
-    --bg:#0f1115; --panel:#181a1f; --muted:#9aa0a6; --accent:#6ee7b7; --card:#111214;
-    --maxw:1400px; --radius:12px;
+  :root {
+    --bg:#0e1014; --panel:#181a1f; --muted:#9aa0a6; --accent:#6ee7b7; --card:#1c1f26; --accent-dark:#4ad1a2;
   }
-  *{box-sizing:border-box;}
-  html,body{height:100%;margin:0;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;}
   body{
-    font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;
-    background: linear-gradient(135deg,#0f1115,#1a1d24);
-    color:#e6eef6;
+    background:linear-gradient(135deg,#0f1115,#1a1d24);
+    color:#e6eef6;display:flex;flex-direction:column;
   }
-  .wrap{width:100%;padding:20px 28px;height:100vh;display:flex;flex-direction:column;gap:14px;}
-  header{display:flex;align-items:center;justify-content:space-between;}
-  .brand{display:flex;gap:12px;align-items:center;}
-  .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#1f2937,#0ea5a3);display:flex;align-items:center;justify-content:center;font-weight:700;}
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 24px;background:var(--panel);
+    box-shadow:0 2px 8px rgba(0,0,0,0.6);
+    position:sticky;top:0;z-index:10;
+  }
+  .logo{font-weight:700;font-size:20px;color:var(--accent);}
   nav{display:flex;gap:8px;}
-  nav button{background:transparent;border:1px solid transparent;padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer;}
-  nav button.active{border-color:rgba(255,255,255,0.06);color:#fff;}
-  .user-area{display:flex;gap:8px;align-items:center;}
-  .btn{background:var(--accent);border:none;color:#042017;padding:8px 12px;border-radius:8px;cursor:pointer;}
-  .panel{background:rgba(24,26,31,0.9);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.6);margin-bottom:0;}
-  main{flex:1;overflow:auto;}
-  form .row{display:flex;gap:10px;margin-bottom:10px;}
-  input,select,textarea{background:var(--card);border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:8px;color:inherit;width:100%;}
-  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px;}
-  table{width:100%;border-collapse:collapse;margin-top:10px;}
-  th,td{padding:8px;border:1px solid rgba(255,255,255,0.03);text-align:left;}
+  nav button{
+    padding:8px 16px;border:none;border-radius:20px;
+    background:transparent;color:var(--muted);cursor:pointer;
+    font-size:14px;transition:all 0.25s;
+  }
+  nav button:hover{color:#fff;background:rgba(255,255,255,0.08);}
+  nav button.active{background:var(--accent);color:#000;font-weight:600;}
+  
+  #loginBoxSmall{display:flex;align-items:center;gap:8px;font-size:13px;}
+  #loginBoxSmall input{
+    padding:6px 10px;border-radius:20px;border:none;
+    background:var(--card);color:#fff;outline:none;
+  }
+  #loginBoxSmall button{
+    padding:6px 14px;border:none;border-radius:20px;
+    background:var(--accent);color:#000;font-weight:600;
+    cursor:pointer;transition:background 0.2s;
+  }
+  #loginBoxSmall button:hover{background:var(--accent-dark);}
+  #loginStatus{color:var(--muted);}
+  
+  .wrap{padding:24px;flex:1;max-width:1200px;margin:auto;width:100%;}
+  .panel{
+    background:rgba(28,31,38,0.95);
+    padding:24px;border-radius:16px;margin-top:16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.5);
+    animation:fadeIn 0.4s ease;
+  }
+  h2{margin-bottom:12px;color:#fff;}
+  h3{margin-top:20px;color:#fff;}
+  label{font-size:14px;color:var(--muted);}
+  input,select{
+    padding:8px 12px;margin:6px 0;border-radius:10px;border:1px solid #333;
+    background:var(--card);color:#fff;width:100%;outline:none;
+    transition:border 0.2s;
+  }
+  input:focus,select:focus{border-color:var(--accent);}
+  
+  table{border-collapse:collapse;width:100%;margin-top:10px;border-radius:10px;overflow:hidden;}
+  th,td{border:1px solid rgba(255,255,255,0.1);padding:8px;text-align:center;font-size:14px;}
+  th{background:rgba(255,255,255,0.05);}
+  
+  .controls{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;}
+  .btn{
+    padding:10px 16px;border:none;border-radius:10px;cursor:pointer;
+    font-size:14px;transition:all 0.2s;
+  }
+  .btn.primary{background:var(--accent);color:#000;font-weight:600;}
+  .btn.primary:hover{background:var(--accent-dark);}
+  .btn:hover{opacity:0.9;}
+  
   .hidden{display:none;}
-  .muted{color:var(--muted);}
-  .small{font-size:13px;}
-  .subject-pill{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);margin:4px 6px;color:var(--muted);font-size:13px;}
-  .controls{display:flex;gap:8px;flex-wrap:wrap;}
-  .danger{background:transparent;border:1px solid rgba(255,0,0,0.12);color:#ffc7c7;}
-  .panel.full{width:100%;}
-  #toast{position:fixed;right:18px;top:18px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
-  .toast{background:rgba(255,255,255,0.03);padding:10px 14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.5);opacity:0;transform:translateY(-8px);transition:all .22s ease;min-width:180px;}
-  .toast.show{opacity:1;transform:none;}
-  .toast.success{border-left:4px solid #1ec38a;}
-  .toast.error{border-left:4px solid #ff6b6b;}
-  @media(max-width:900px){.row{flex-direction:column}.brand{gap:8px}.logo{width:40px;height:40px}}
+  
+  .deptList button{
+    display:block;width:100%;margin:8px 0;padding:14px 16px;border-radius:12px;
+    background:var(--card);color:#fff;text-align:left;cursor:pointer;
+    border:none;font-size:15px;transition:all 0.2s;
+  }
+  .deptList button:hover{background:#2c3039;transform:translateX(3px);}
+  
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo">SS</div>
-      <div>
-        <div style="font-weight:700">Smart Scheduler</div>
-        <div class="small muted">Planner for classes & marks</div>
-      </div>
-    </div>
-    <div class="user-area">
-      <div id="userBox" class="small muted">Not logged in</div>
-      <button id="loginBtn" class="btn small">Create account / Login</button>
-      <button id="logoutBtn" class="small hidden">Logout</button>
-    </div>
-  </header>
-
-  <nav class="panel full">
-    <button class="navBtn active" data-view="dashboardView">Dashboard</button>
-    <button class="navBtn" data-view="timetableView">Timetable</button>
-    <button class="navBtn" data-view="marksView">Marks</button>
+<header>
+  <div class="logo">Smart Scheduler</div>
+  <nav>
+    <button class="navBtn active" data-view="dashboard">Dashboard</button>
+    <button class="navBtn" data-view="timetable">Timetable</button>
+    <button class="navBtn" data-view="marks">Marks</button>
   </nav>
+  <div id="loginBoxSmall">
+    <span id="loginStatus">Not logged in</span>
+    <input id="loginUser" placeholder="Username">
+    <button id="loginBtn">Login</button>
+    <button id="logoutBtn" class="hidden">Logout</button>
+  </div>
+</header>
 
-  <main>
-    <!-- Dashboard -->
-    <section id="dashboardView" class="panel full">
-      <h2 style="margin-top:0">Dashboard</h2>
-      <p class="muted small">Set up department, classes, and subjects. Stored locally.</p>
-      <div id="statusRow" class="small" style="margin-bottom:10px">
-        <div>No. of Classes: <strong id="numClassesDisplay">—</strong></div>
-        <div>Department: <strong id="deptDisplay">—</strong></div>
-      </div>
-      <div style="margin-bottom:10px">
-        <label>Subjects</label>
-        <div id="subjectsList" aria-live="polite"></div>
-      </div>
-      <form id="setupForm">
-        <div class="row">
-          <div style="flex:1">
-            <label for="classCount">No. of Classes</label>
-            <input id="classCount" type="number" min="1" placeholder="e.g. 6" />
-          </div>
-          <div style="flex:2">
-            <label for="department">Department Name</label>
-            <input id="department" type="text" placeholder="e.g. Computer Science" />
-          </div>
-        </div>
-        <div class="row">
-          <div style="flex:1">
-            <label for="days">Days to schedule</label>
-            <input id="days" type="number" min="1" value="5" />
-          </div>
-          <div style="flex:1">
-            <label for="periods">Periods per day</label>
-            <input id="periods" type="number" min="1" value="6" />
-          </div>
-          <div style="flex:2">
-            <label for="subjectsInput">Subjects (comma separated)</label>
-            <input id="subjectsInput" type="text" placeholder="Maths,Physics,Chemistry" />
-          </div>
-        </div>
-        <div class="controls">
-          <button type="submit" class="btn">Save & Generate Timetable</button>
-          <button type="button" id="saveOnlyBtn" class="small">Save Settings</button>
-          <button type="button" id="clearBtn" class="danger small">Clear All Data</button>
-        </div>
-      </form>
-    </section>
+<div class="wrap">
 
-    <!-- Timetable -->
-    <section id="timetableView" class="panel full hidden" style="margin-top:14px">
-      <h2 style="margin-top:0">Generated Timetable</h2>
-      <div class="muted small">Print or export CSV.</div>
-      <div id="timetableWrapper" style="overflow:auto;margin-top:12px;max-height:52vh"><table id="timetable"></table></div>
-      <div class="controls" style="margin-top:10px">
-        <button id="printBtn" class="btn">Print / Save PDF</button>
-        <button id="exportCsvTimetable" class="small">Export CSV</button>
-      </div>
-    </section>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="panel">
+    <h2>Departments</h2>
+    <div class="deptList" id="deptList"></div>
+    <div class="controls">
+      <input id="newDeptName" placeholder="Enter Department Name">
+      <button class="btn primary" id="addDeptBtn">Add Department</button>
+    </div>
+  </section>
 
-    <!-- Marks -->
-    <section id="marksView" class="panel full hidden" style="margin-top:14px">
-      <h2 style="margin-top:0">Marks</h2>
-      <form id="marksForm">
-        <div class="row">
-          <div style="flex:1">
-            <label for="examType">Exam Type</label>
-            <select id="examType">
-              <option value="mid">Mid Term</option>
-              <option value="semester">Semester</option>
-            </select>
-          </div>
-          <div style="flex:2">
-            <label for="markSubject">Subject</label>
-            <input id="markSubject" type="text" placeholder="Subject name" />
-          </div>
-          <div style="flex:1">
-            <label for="markValue">Marks</label>
-            <input id="markValue" type="number" min="0" placeholder="e.g. 78" />
-          </div>
-        </div>
-        <div class="controls" style="margin-top:8px">
-          <button class="btn" type="submit">Add Mark</button>
-          <button id="exportMarksCsv" type="button" class="small">Export Marks CSV</button>
-        </div>
-      </form>
-      <div style="margin-top:12px">
-        <table id="marksTable"><tr><th>Subject</th><th>Marks</th><th>Exam</th><th>Actions</th></tr></table>
-      </div>
-    </section>
-  </main>
+  <!-- DEPARTMENT CONFIG -->
+  <section id="deptConfig" class="panel hidden">
+    <h2 id="deptTitle">Configure Department</h2>
+    <div>
+      <label>No. of Sections</label>
+      <input id="numSections" type="number" min="1" value="1">
+    </div>
+    <div>
+      <label>Subjects (comma separated)</label>
+      <input id="subjectsInput" placeholder="Maths, Physics, DSA">
+    </div>
+    <div>
+      <label>Days</label>
+      <input id="days" type="number" min="1" value="5">
+    </div>
+    <div>
+      <label>Periods per Day</label>
+      <input id="periods" type="number" min="1" value="6">
+    </div>
+
+    <h3>Faculty List</h3>
+    <table id="facultyTable">
+      <tr><th>Faculty Name</th><th>Subject</th><th>Action</th></tr>
+    </table>
+    <div class="controls">
+      <input id="facName" placeholder="Faculty Name">
+      <input id="facSubject" placeholder="Subject">
+      <button class="btn primary" id="addFaculty">Add Faculty</button>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="saveDeptBtn">Save & Generate Timetables</button>
+      <button class="btn" id="backBtn">← Back to Departments</button>
+    </div>
+  </section>
+
+  <!-- TIMETABLE -->
+  <section id="timetable" class="panel hidden">
+    <h2>Generated Timetables</h2>
+    <label>Select Department</label>
+    <select id="deptSelect"></select>
+    <label>Select Section</label>
+    <select id="sectionSelect"></select>
+    <div id="timetableWrapper"></div>
+  </section>
+
+  <!-- MARKS -->
+  <section id="marks" class="panel hidden">
+    <h2>Marks Section (Coming Soon)</h2>
+  </section>
+
 </div>
-<div id="toast"></div>
 
 <script>
-const KEYS={user:'ss_user',settings:'ss_settings',marks:'ss_marks'};
 const $=s=>document.querySelector(s);
 const $all=s=>Array.from(document.querySelectorAll(s));
-const views={dashboard:'dashboardView',timetable:'timetableView',marks:'marksView'};
-const defaultSettings={numClasses:6,deptName:'',subjects:[],days:5,periods:6};
 
-function loadJSON(k,f){try{return JSON.parse(localStorage.getItem(k))||f}catch{return f}}
-function saveJSON(k,v){localStorage.setItem(k,JSON.stringify(v))}
-function showToast(msg,type='info'){const t=document.createElement('div');t.className='toast '+(type==='error'?'error':(type==='success'?'success':''));t.textContent=msg;$('#toast').appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),220)},3200)}
+let departments={};
+let currentDept=null;
 
-function getUser(){return localStorage.getItem(KEYS.user)||null;}
-function setUser(name){localStorage.setItem(KEYS.user,name.trim());renderUser();showToast(`Logged in as ${name}`,'success');}
-function clearUser(){localStorage.removeItem(KEYS.user);renderUser();showToast('Logged out','success');}
+// ============ LOGIN (Username only) ============
+$('#loginBtn').onclick=()=>{
+  const u=$('#loginUser').value.trim();
+  if(u){
+    $('#loginStatus').textContent = `Hello, ${u}`;
+    $('#loginUser').classList.add('hidden');
+    $('#loginBtn').classList.add('hidden');
+    $('#logoutBtn').classList.remove('hidden');
+  } else {
+    alert("Enter a username");
+  }
+};
+$('#logoutBtn').onclick=()=>{
+  $('#loginStatus').textContent = "Not logged in";
+  $('#loginUser').classList.remove('hidden');
+  $('#loginBtn').classList.remove('hidden');
+  $('#logoutBtn').classList.add('hidden');
+};
 
-function renderUser(){const name=getUser();if(name){$('#userBox').textContent=`Hello, ${name}`;$('#loginBtn').classList.add('hidden');$('#logoutBtn').classList.remove('hidden');}else{$('#userBox').textContent='Not logged in';$('#loginBtn').classList.remove('hidden');$('#logoutBtn').classList.add('hidden');}}
+// ============ DASHBOARD ============
+function renderDeptList(){
+  const list=$('#deptList');
+  list.innerHTML='';
+  Object.keys(departments).forEach(name=>{
+    const btn=document.createElement('button');
+    btn.textContent=name;
+    btn.onclick=()=>openDeptConfig(name);
+    list.appendChild(btn);
+  });
+}
+$('#addDeptBtn').onclick=()=>{
+  const name=$('#newDeptName').value.trim();
+  if(!name)return alert("Enter department name");
+  if(departments[name])return alert("Already exists");
+  departments[name]={faculty:[],subjects:[],numSections:1,days:5,periods:6,timetables:{}};
+  $('#newDeptName').value='';
+  renderDeptList();
+};
 
-function showView(v){Object.values(views).forEach(id=>{const el=$('#'+id);if(!el)return;el.classList.toggle('hidden',id!==v)});$all('.navBtn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(v===views.marks)displayMarks();if(v===views.timetable)renderTimetable();}
+// ============ DEPT CONFIG ============
+function openDeptConfig(name){
+  currentDept=name;
+  const d=departments[name];
+  $('#deptTitle').textContent=`Configure ${name}`;
+  $('#numSections').value=d.numSections;
+  $('#subjectsInput').value=d.subjects.join(', ');
+  $('#days').value=d.days;
+  $('#periods').value=d.periods;
+  renderFacultyTable();
+  showView('deptConfig');
+}
+function renderFacultyTable(){
+  const t=$('#facultyTable');
+  const d=departments[currentDept];
+  t.innerHTML='<tr><th>Faculty Name</th><th>Subject</th><th>Action</th></tr>';
+  d.faculty.forEach((f,i)=>{
+    const row=document.createElement('tr');
+    row.innerHTML=`<td>${f.name}</td><td>${f.subject}</td>
+      <td><button onclick="removeFaculty(${i})">Delete</button></td>`;
+    t.appendChild(row);
+  });
+}
+function removeFaculty(i){
+  departments[currentDept].faculty.splice(i,1);
+  renderFacultyTable();
+}
+$('#addFaculty').onclick=()=>{
+  const n=$('#facName').value.trim();
+  const s=$('#facSubject').value.trim();
+  if(!n||!s)return alert("Enter both fields");
+  departments[currentDept].faculty.push({name:n,subject:s});
+  $('#facName').value='';$('#facSubject').value='';
+  renderFacultyTable();
+};
+$('#backBtn').onclick=()=>showView('dashboard');
 
-function loadSettings(){return loadJSON(KEYS.settings,defaultSettings);}
-function saveSettings(s){saveJSON(KEYS.settings,s);}
-function renderDashboard(){const s=loadSettings();$('#numClassesDisplay').textContent=s.numClasses||'—';$('#deptDisplay').textContent=s.deptName||'—';$('#classCount').value=s.numClasses||'';$('#department').value=s.deptName||'';$('#subjectsInput').value=(s.subjects||[]).join(', ');$('#days').value=s.days||5;$('#periods').value=s.periods||6;renderSubjectsList(s.subjects||[]);}
-function renderSubjectsList(subs){const c=$('#subjectsList');c.innerHTML=subs.length?subs.map(s=>`<span class="subject-pill">${s}</span>`).join(''):'<span class="muted">No subjects set</span>'}
+$('#saveDeptBtn').onclick=()=>{
+  const d=departments[currentDept];
+  d.numSections=parseInt($('#numSections').value)||1;
+  d.subjects=$('#subjectsInput').value.split(',').map(s=>s.trim()).filter(Boolean);
+  d.days=parseInt($('#days').value)||5;
+  d.periods=parseInt($('#periods').value)||6;
+  if(!d.subjects.length||!d.faculty.length){
+    return alert("Add subjects and faculty first");
+  }
+  d.timetables=generateMultiSectionTimetables(d);
+  populateDeptSelector();
+  showView('timetable');
+};
 
-function generateTimetableHtml(s){const d=s.days||5,p=s.periods||6,subs=s.subjects.length?s.subjects:['Free'];const tbl=document.createElement('table');const h=document.createElement('tr');h.innerHTML='<th>Day/Period</th>'+Array.from({length:p},(_,i)=>`<th>P${i+1}</th>`).join('');tbl.appendChild(h);let idx=0;for(let i=1;i<=d;i++){const r=document.createElement('tr');r.innerHTML='<td>Day '+i+'</td>'+Array.from({length:p},()=>`<td>${subs[idx++%subs.length]}</td>`).join('');tbl.appendChild(r);}return tbl}
-function renderTimetable(){const s=loadSettings();$('#timetable').replaceWith(generateTimetableHtml(s))}
-function exportTimetableCsv(){const s=loadSettings(),d=s.days||5,p=s.periods||6,subs=s.subjects.length?s.subjects:['Free'];let csv='Day';for(let i=1;i<=p;i++)csv+=`,Period ${i}`;csv+='\n';let idx=0;for(let i=1;i<=d;i++){let row=`Day ${i}`;for(let j=1;j<=p;j++)row+=',"'+subs[idx++%subs.length]+'"';csv+='\n'+row;}download(csv,'timetable.csv')}
+// ============ TIMETABLE ============
+function generateMultiSectionTimetables(dept){
+  const {numSections,days,periods,subjects,faculty}=dept;
+  const subjectFacultyMap={};
+  faculty.forEach(f=>{
+    if(!subjectFacultyMap[f.subject])subjectFacultyMap[f.subject]=[];
+    subjectFacultyMap[f.subject].push(f.name);
+  });
+  const result={};
+  for(let sec=1;sec<=numSections;sec++){
+    const table=[];
+    for(let d=0;d<days;d++){
+      const row=[];
+      for(let p=0;p<periods;p++){
+        const subj=subjects[Math.floor(Math.random()*subjects.length)];
+        let facList=subjectFacultyMap[subj]||[];
+        let teacher=facList.length? facList[(sec+d+p)%facList.length] : "TBA";
+        row.push({subject:subj,faculty:teacher});
+      }
+      table.push(row);
+    }
+    result[`Section ${sec}`]=table;
+  }
+  return result;
+}
+function populateDeptSelector(){
+  const sel=$('#deptSelect');
+  sel.innerHTML='';
+  Object.keys(departments).forEach(name=>{
+    const opt=document.createElement('option');
+    opt.value=name;opt.textContent=name;
+    sel.appendChild(opt);
+  });
+  sel.onchange();
+}
+$('#deptSelect').onchange=()=>{
+  const deptName=$('#deptSelect').value;
+  const d=departments[deptName];
+  const sel=$('#sectionSelect');
+  sel.innerHTML='';
+  Object.keys(d.timetables).forEach(sec=>{
+    const opt=document.createElement('option');
+    opt.value=sec;opt.textContent=sec;
+    sel.appendChild(opt);
+  });
+  renderTimetable(deptName,sel.value);
+};
+$('#sectionSelect').onchange=()=>{
+  renderTimetable($('#deptSelect').value,$('#sectionSelect').value);
+};
+function renderTimetable(deptName,sec){
+  const t=departments[deptName].timetables[sec];
+  if(!t)return;
+  const periods=departments[deptName].periods;
+  let html='<table><tr><th>Day/Period</th>';
+  for(let p=1;p<=periods;p++)html+=`<th>P${p}</th>`;
+  html+='</tr>';
+  t.forEach((row,di)=>{
+    html+=`<tr><td>Day ${di+1}</td>`;
+    row.forEach(cell=>{
+      html+=`<td>${cell.subject}<br><small>${cell.faculty}</small></td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</table>';
+  $('#timetableWrapper').innerHTML=html;
+}
 
-function loadMarks(){return loadJSON(KEYS.marks,{})}
-function saveMarks(m){saveJSON(KEYS.marks,m)}
-function displayMarks(){const m=loadMarks();const t=$('#marksTable');t.innerHTML='<tr><th>Subject</th><th>Marks</th><th>Exam</th><th>Actions</th></tr>';const exams=Object.keys(m);if(!exams.length){const r=t.insertRow();r.insertCell().textContent='No marks recorded';return;}exams.forEach(e=>m[e].forEach((it,i)=>{const r=t.insertRow();r.insertCell().textContent=it.subject;r.insertCell().textContent=it.marks;r.insertCell().textContent=e;const a=r.insertCell();const b=document.createElement('button');b.textContent='Delete';b.className='small';b.onclick=()=>{m[e].splice(i,1);saveMarks(m);displayMarks();};a.appendChild(b)}))}
-
-function exportMarksCsv(){const m=loadMarks();let csv='Exam,Subject,Marks\n';Object.keys(m).forEach(e=>m[e].forEach(it=>csv+=`${e},${it.subject},${it.marks}\n`));download(csv,'marks.csv')}
-function download(c,f){const b=new Blob([c],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=f;a.click();URL.revokeObjectURL(u)}
-function clearAll(){localStorage.clear();renderDashboard();displayMarks();renderUser();renderTimetable()}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  renderUser();renderDashboard();displayMarks();renderTimetable();
-  $all('.navBtn').forEach(b=>b.onclick=()=>showView(b.dataset.view));
-  $('#loginBtn').onclick=()=>{const n=prompt('Enter name:');if(n)setUser(n)};
-  $('#logoutBtn').onclick=()=>clearUser();
-  $('#setupForm').onsubmit=e=>{e.preventDefault();const n=parseInt($('#classCount').value)||6,d=$('#department').value.trim(),subs=$('#subjectsInput').value.split(',').map(s=>s.trim()).filter(Boolean),days=parseInt($('#days').value)||5,p=parseInt($('#periods').value)||6;if(!d||!subs.length)return showToast('Fill all fields','error');saveSettings({numClasses:n,deptName:d,subjects:subs,days,periods:p});renderDashboard();renderTimetable();showView(views.timetable);showToast('Saved & generated','success');};
-  $('#saveOnlyBtn').onclick=()=>{const n=parseInt($('#classCount').value)||6,d=$('#department').value.trim(),subs=$('#subjectsInput').value.split(',').map(s=>s.trim()).filter(Boolean),days=parseInt($('#days').value)||5,p=parseInt($('#periods').value)||6;if(!d||!subs.length)return showToast('Fill all fields','error');saveSettings({numClasses:n,deptName:d,subjects:subs,days,periods:p});renderDashboard();showToast('Settings saved','success');};
-  $('#clearBtn').onclick=clearAll;
-  $('#printBtn').onclick=()=>print();
-  $('#exportCsvTimetable').onclick=exportTimetableCsv;
-  $('#marksForm').onsubmit=e=>{e.preventDefault();const ex=$('#examType').value,s=$('#markSubject').value.trim(),m=parseFloat($('#markValue').value);if(!s||isNaN(m))return showToast('Enter valid mark','error');const data=loadMarks();(data[ex]=data[ex]||[]).push({subject:s,marks:m});saveMarks(data);displayMarks();$('#markSubject').value='';$('#markValue').value='';showToast('Mark added','success');};
-  $('#exportMarksCsv').onclick=exportMarksCsv;
-});
+// ============ NAVIGATION ============
+function showView(v){
+  $all('section').forEach(s=>s.classList.add('hidden'));
+  $('#'+v).classList.remove('hidden');
+  $all('.navBtn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+}
+$all('.navBtn').forEach(b=>b.onclick=()=>showView(b.dataset.view));
 </script>
 </body>
 </html>
