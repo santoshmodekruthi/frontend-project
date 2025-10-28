@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Smart Scheduler — Complete</title>
+<title>timetrix — Complete</title>
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <style>
   body.light-theme {
@@ -109,13 +109,15 @@
   }
 
   /* LOGIN / AUTH MODALS */
-  .center-screen {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
-    background: linear-gradient(120deg, #0a2540 0%, #102542 100%);
-  }
+.center-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #a7c7e7 !important; /* pastel blue */
+}
+
+
   .auth-card{width:360px;padding:26px;border-radius:var(--radius);background:var(--card);box-shadow:0 4px 24px rgba(60,60,60,0.10);color:#222;}
   .auth-card * { color: #000 !important; }
   .auth-card h2{margin:0 0 12px;color:var(--accent)}
@@ -229,8 +231,8 @@
 <!-- ========== AUTH SCREENS ========== -->
 <div id="authRoot" class="center-screen">
   <div class="auth-card" id="signInCard">
-    <h2>Smart Scheduler Pro</h2>
-    <p class="small">Sign in with your email to manage schedules & smart classrooms.</p>
+    <h2>TIMETRIX</h2>
+    <p class="small">Schedule smarter shine brighter.</p>
     <input id="authEmail" class="field" placeholder="Email" type="email" value="">
     <input id="authPassword" class="field" placeholder="Password" type="password" value="">
     <button class="btn btn-primary" id="authSignIn">Sign in</button>
