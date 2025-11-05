@@ -369,6 +369,16 @@
                 </div>
 
                 <div style="margin-top:8px"><label class="small">Subjects (comma separated)</label><input id="cfgSubjects" class="field" placeholder="Math,Physics,DSA"></div>
+                <div style="margin-top:8px">
+                  <label class="small">Periods per Week (comma separated)</label>
+                  <input id="cfgPeriodsPerWeek" class="field" placeholder="10,10,8">
+                </div>
+                
+                <div style="margin-top:8px">
+                  <label class="small">Time Slots (Format: StartTime-EndTime, comma separated)</label>
+                  <input id="cfgTimeSlots" class="field" placeholder="9AM-10AM,10AM-11AM,11AM-12PM">
+                  <div class="small" style="color:#888;margin-top:4px"></div>
+                </div>
 
                 <div style="margin-top:10px"><h4 class="small">Faculty</h4>
                   <div style="display:flex;gap:8px">
@@ -376,7 +386,7 @@
                     <input id="facSubject" class="field" placeholder="Subject">
                     <button class="btn btn-primary" id="addFacultyBtn">Add</button>
                   </div>
-                  <table id="facultyTable"><thead><tr><th>Name</th><th>Subject</th><th>Action</th></tr></thead><tbody></tbody></table>
+                  <table id="facultyTable"><thead><tr><th>Name</th><th>Subject</th><th>Periods per Week</th><th>Action</th></tr></thead><tbody></tbody></table>
                 </div>
 
                 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
@@ -530,9 +540,7 @@ function openAppAs(email){
   createSession(email);
   document.getElementById('appRoot').style.display = 'block';
   authRoot.style.display = 'none';
-  document.getElementById('userEmailDisplay').textContent = email;
   document.getElementById('acctEmail').textContent = email;
-  document.getElementById('sessionInfo').textContent = `Signed in as ${email}`;
   refreshAllUI();
 }
 
@@ -716,6 +724,8 @@ function openDeptConfig(name){
   cfgDays.value = dept.days || 5;
   cfgPeriods.value = dept.periods || 6;
   cfgSubjects.value = (dept.subjects || []).join(', ');
+  cfgPeriodsPerWeek.value = (dept.periodsPerWeek || []).join(', ');
+  cfgTimeSlots.value = (dept.timeSlots || []).join(', ');
   renderFacultyTable();
   // switch to Departments screen
   document.querySelector('.nav button[data-view="departments"]').click();
@@ -737,7 +747,7 @@ function renderFacultyTable(){
   }
   list.forEach((f,i)=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${escapeHtml(f.name)}</td><td>${escapeHtml(f.subject)}</td><td><button class="btn btn-ghost" data-i="${i}">Delete</button></td>`;
+    tr.innerHTML = `<td>${escapeHtml(f.name)}</td><td>${escapeHtml(f.subject)}</td><td><button class="btn-ghost small" data-idx="${i}">Remove</button></td>`;
     tr.querySelector('button').addEventListener('click', requireAuth(()=> {
       DATA.departments[activeDept].faculty.splice(i,1);
       saveData(DATA);
@@ -765,13 +775,25 @@ cfgSave.addEventListener('click', requireAuth(()=> {
   const numSections = Math.max(1, parseInt(cfgSections.value) || 1);
   const days = Math.max(1, parseInt(cfgDays.value) || 5);
   const periods = Math.max(1, parseInt(cfgPeriods.value) || 6);
+  
+  // Parse periods per week
+  const periodsPerWeekInput = document.getElementById('cfgPeriodsPerWeek').value.split(',').map(x=>parseInt(x.trim()) || 1);
+  
+  // Parse time slots
+  const timeSlotsInput = document.getElementById('cfgTimeSlots').value.split(',').map(x=>x.trim()).filter(Boolean);
+  
   if(subjects.length === 0) return alert('Add at least one subject');
   if((DATA.departments[activeDept].faculty || []).length === 0) return alert('Add faculty first');
+  if(timeSlotsInput.length !== periods) return alert(`Number of time slots (${timeSlotsInput.length}) must match number of periods (${periods})`);
+  
   const dept = DATA.departments[activeDept];
   dept.subjects = subjects;
   dept.numSections = numSections;
   dept.days = days;
   dept.periods = periods;
+  dept.periodsPerWeek = periodsPerWeekInput;
+  dept.timeSlots = timeSlotsInput;
+
   // Generate timetables with clash-free algorithm
   dept.timetables = generateClashFreeTimetablesForDept(dept);
   DATA.stats = DATA.stats || {};
@@ -807,6 +829,17 @@ function generateClashFreeTimetablesForDept(dept){
   const periods = dept.periods;
   const numSections = dept.numSections;
   const faculty = dept.faculty || [];
+  const periodsPerWeek = dept.periodsPerWeek || [];
+
+  // Create a weighted list of subjects based on periodsPerWeek
+  const weightedSubjects = [];
+  subjects.forEach((subject, i) => {
+    const count = periodsPerWeek[i] || 1; // Default to 1 if not specified
+    for (let j = 0; j < count; j++) {
+      weightedSubjects.push(subject);
+    }
+  });
+
   // build map subject -> teachers
   const subjMap = {};
   for(const f of faculty){
@@ -826,8 +859,8 @@ function generateClashFreeTimetablesForDept(dept){
   const subjQueues = {};
   for(let s=1;s<=numSections;s++){
     // start offset so sections don't all pick same subject in same order
-    const offset = (s-1) % subjects.length;
-    subjQueues[s] = subjects.slice(offset).concat(subjects.slice(0, offset));
+    const offset = (s-1) % weightedSubjects.length;
+    subjQueues[s] = weightedSubjects.slice(offset).concat(weightedSubjects.slice(0, offset));
   }
 
   // iterate day & period, then assign each section
@@ -859,7 +892,7 @@ function generateClashFreeTimetablesForDept(dept){
         }
         if(!assigned){
           // no teacher available for chosen subjects -> assign subject but teacher TBA
-          const subjFallback = subjects[(p + s -1) % subjects.length];
+          const subjFallback = weightedSubjects[(p + s -1) % weightedSubjects.length];
           timetables[`Section ${s}`][d][p] = { subject: subjFallback, teacher: 'TBA' };
         }
       }
@@ -921,8 +954,12 @@ function renderTimetable(deptName, sectionName){
   if(!dept || !dept.timetables || !dept.timetables[sectionName]){ timetableContainer.innerHTML = '<div class="small">No timetable available</div>'; return; }
   const table = dept.timetables[sectionName];
   const days = dept.days; const periods = dept.periods;
-  let html = `<table><thead><tr><th>Day / Period</th>`;
-  for(let p=1;p<=periods;p++) html += `<th>P${p}</th>`;
+  const timeSlots = dept.timeSlots || [];
+  let html = `<table><thead><tr><th>Day / Time</th>`;
+  for(let p=0;p<periods;p++) {
+    const timeSlot = timeSlots[p] || `P${p+1}`;
+    html += `<th>${escapeHtml(timeSlot)}</th>`;
+  }
   html += `</tr></thead><tbody>`;
   table.forEach((row,di)=>{
     html += `<tr><td style="font-weight:700">Day ${di+1}</td>`;
@@ -940,7 +977,8 @@ function exportTimetableCSV(deptName, sectionName){
   const tt = dept.timetables[sectionName];
   if(!tt) return alert('No timetable');
   const rows = [];
-  const header = ['Day'].concat(Array.from({length:dept.periods}, (_,i)=>`P${i+1}`));
+  const timeSlots = dept.timeSlots || [];
+  const header = ['Day'].concat(Array.from({length:dept.periods}, (_,i)=> timeSlots[i] || `P${i+1}`));
   rows.push(header.join(','));
   tt.forEach((r,di)=>{
     const cols = [`Day ${di+1}`].concat(r.map(c=>`${c.subject} (${c.teacher})`));
@@ -1073,7 +1111,6 @@ function refreshAllUI(){
   populateTimetableSelectors();
   populateRoomSelect();
   document.getElementById('acctEmail').textContent = getSession()? getSession().email : '—';
-  document.getElementById('userEmailDisplay').textContent = getSession()? getSession().email : '';
 }
 
 /* escape HTML utility */
@@ -1116,7 +1153,6 @@ function hideModalById(id){ document.getElementById(id).style.display = 'none'; 
     // signed in — show app
     authRoot.style.display = 'none';
     document.getElementById('appRoot').style.display = 'block';
-    document.getElementById('userEmailDisplay').textContent = session.email;
     document.getElementById('acctEmail').textContent = session.email;
     refreshAllUI();
   } else {
