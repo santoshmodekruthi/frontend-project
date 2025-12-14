@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>timetrix — Complete</title>
+<title>SMART SCHEDULER — Complete</title>
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <style>
   body.light-theme {
@@ -213,6 +213,9 @@
   /* timetable */
   .tt-wrap{overflow:auto}
   .subject-pill{display:inline-block;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);font-weight:700}
+      .lab-pill{background:rgba(255,193,7,0.2);border:1px solid #ffc107;color:#ffc107}
+      .theory-pill{background:rgba(40,167,69,0.2);border:1px solid #28a745;color:#28a745}
+      .type-label{color:#999;font-size:10px;margin-top:2px}
 
   /* modal */
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:60}
@@ -231,7 +234,7 @@
 <!-- ========== AUTH SCREENS ========== -->
 <div id="authRoot" class="center-screen">
   <div class="auth-card" id="signInCard">
-    <h2>TIMETRIX</h2>
+    <h2>SMART SCHEDULER</h2>
     <p class="small">Schedule smarter shine brighter.</p>
     <input id="authEmail" class="field" placeholder="Email" type="email" value="">
     <input id="authPassword" class="field" placeholder="Password" type="password" value="">
@@ -368,16 +371,42 @@
                   <div style="flex:1"><label class="small">Periods</label><input id="cfgPeriods" class="field" type="number" min="1" value="6"></div>
                 </div>
 
-                <div style="margin-top:8px"><label class="small">Subjects (comma separated)</label><input id="cfgSubjects" class="field" placeholder="Math,Physics,DSA"></div>
+                <div style="margin-top:8px"><label class="small">Theory Subjects (comma separated)</label><input id="cfgSubjects" class="field" placeholder="Math,Physics,DSA"></div>
+                
+                <div style="margin-top:8px"><label class="small">Lab Subjects (comma separated)</label><input id="cfgLabs" class="field" placeholder="Physics Lab,Chemistry Lab,Programming Lab"></div>
+                
                 <div style="margin-top:8px">
-                  <label class="small">Periods per Week (comma separated)</label>
-                  <input id="cfgPeriodsPerWeek" class="field" placeholder="10,10,8">
+                  <label class="small">Theory Periods per Week (comma separated)</label>
+                  <input id="cfgPeriodsPerWeek" class="field" placeholder="5,5,4">
+                </div>
+                
+                <div style="margin-top:8px">
+                  <label class="small">Lab Periods per Week (3 hours each, comma separated)</label>
+                  <input id="cfgLabPeriodsPerWeek" class="field" placeholder="3,3,3">
+                </div>
+                
+                <div style="margin-top:8px">
+                  <label class="small">Max Theory Periods per Day (comma separated)</label>
+                  <input id="cfgMaxTheoryPerDay" class="field" placeholder="1,1,1" title="Maximum times a subject can appear per day">
+                  <div class="small" style="color:#888;margin-top:4px">Maximum times each theory subject can appear per day (1 or 2 recommended)</div>
+                </div>
+                
+                <div style="margin-top:8px">
+                  <label class="small">Max Lab Periods per Day (comma separated)</label>
+                  <input id="cfgMaxLabPerDay" class="field" placeholder="1,1,1" title="Maximum times a lab can appear per day">
+                  <div class="small" style="color:#888;margin-top:4px">Maximum times each lab can appear per day (1 recommended for 3-hour blocks)</div>
                 </div>
                 
                 <div style="margin-top:8px">
                   <label class="small">Time Slots (Format: StartTime-EndTime, comma separated)</label>
                   <input id="cfgTimeSlots" class="field" placeholder="9AM-10AM,10AM-11AM,11AM-12PM">
                   <div class="small" style="color:#888;margin-top:4px"></div>
+                </div>
+                
+                <div style="margin-top:8px">
+                  <label class="small">Continuous Periods (comma separated: 1=continuous, 0=single)</label>
+                  <input id="cfgContinuousPeriods" class="field" placeholder="0,1,0" title="1=subject can have continuous periods, 0=subject must be single periods only">
+                  <div class="small" style="color:#888;margin-top:4px">1 = Subject can have continuous periods, 0 = Subject must be single periods only</div>
                 </div>
 
                 <div style="margin-top:10px"><h4 class="small">Faculty</h4>
@@ -706,6 +735,13 @@ const cfgSections = document.getElementById('cfgSections');
 const cfgDays = document.getElementById('cfgDays');
 const cfgPeriods = document.getElementById('cfgPeriods');
 const cfgSubjects = document.getElementById('cfgSubjects');
+const cfgPeriodsPerWeek = document.getElementById('cfgPeriodsPerWeek');
+const cfgTimeSlots = document.getElementById('cfgTimeSlots');
+const cfgContinuousPeriods = document.getElementById('cfgContinuousPeriods');
+const cfgLabs = document.getElementById('cfgLabs');
+const cfgLabPeriodsPerWeek = document.getElementById('cfgLabPeriodsPerWeek');
+const cfgMaxTheoryPerDay = document.getElementById('cfgMaxTheoryPerDay');
+const cfgMaxLabPerDay = document.getElementById('cfgMaxLabPerDay');
 const facName = document.getElementById('facName');
 const facSubject = document.getElementById('facSubject');
 const addFacultyBtn = document.getElementById('addFacultyBtn');
@@ -724,8 +760,13 @@ function openDeptConfig(name){
   cfgDays.value = dept.days || 5;
   cfgPeriods.value = dept.periods || 6;
   cfgSubjects.value = (dept.subjects || []).join(', ');
+  cfgLabs.value = (dept.labs || []).join(', ');
   cfgPeriodsPerWeek.value = (dept.periodsPerWeek || []).join(', ');
+  cfgLabPeriodsPerWeek.value = (dept.labPeriodsPerWeek || []).join(', ');
   cfgTimeSlots.value = (dept.timeSlots || []).join(', ');
+  cfgContinuousPeriods.value = (dept.continuousPeriods || []).join(', ');
+  cfgMaxTheoryPerDay.value = dept.maxTheoryPerDay || 2;
+  cfgMaxLabPerDay.value = dept.maxLabPerDay || 1;
   renderFacultyTable();
   // switch to Departments screen
   document.querySelector('.nav button[data-view="departments"]').click();
@@ -772,27 +813,43 @@ cfgCancel.addEventListener('click', ()=> closeDeptConfig());
 cfgSave.addEventListener('click', requireAuth(()=> {
   if(!activeDept) return alert('Open a department first');
   const subjects = cfgSubjects.value.split(',').map(x=>x.trim()).filter(Boolean);
+  const labs = cfgLabs.value.split(',').map(x=>x.trim()).filter(Boolean);
   const numSections = Math.max(1, parseInt(cfgSections.value) || 1);
   const days = Math.max(1, parseInt(cfgDays.value) || 5);
   const periods = Math.max(1, parseInt(cfgPeriods.value) || 6);
+  const maxTheoryPerDay = Math.max(1, parseInt(cfgMaxTheoryPerDay.value) || 2);
+  const maxLabPerDay = Math.max(1, parseInt(cfgMaxLabPerDay.value) || 1);
   
   // Parse periods per week
   const periodsPerWeekInput = document.getElementById('cfgPeriodsPerWeek').value.split(',').map(x=>parseInt(x.trim()) || 1);
   
+  // Parse lab periods per week (3 hours each)
+  const labPeriodsPerWeekInput = document.getElementById('cfgLabPeriodsPerWeek').value.split(',').map(x=>parseInt(x.trim()) || 3);
+  
   // Parse time slots
   const timeSlotsInput = document.getElementById('cfgTimeSlots').value.split(',').map(x=>x.trim()).filter(Boolean);
+  
+  // Parse continuous periods
+  const continuousPeriodsInput = document.getElementById('cfgContinuousPeriods').value.split(',').map(x=>parseInt(x.trim()) || 0);
   
   if(subjects.length === 0) return alert('Add at least one subject');
   if((DATA.departments[activeDept].faculty || []).length === 0) return alert('Add faculty first');
   if(timeSlotsInput.length !== periods) return alert(`Number of time slots (${timeSlotsInput.length}) must match number of periods (${periods})`);
+  if(continuousPeriodsInput.length !== subjects.length) return alert(`Number of continuous period settings (${continuousPeriodsInput.length}) must match number of subjects (${subjects.length})`);
+  if(labs.length > 0 && labPeriodsPerWeekInput.length !== labs.length) return alert(`Number of lab periods per week (${labPeriodsPerWeekInput.length}) must match number of labs (${labs.length})`);
   
   const dept = DATA.departments[activeDept];
   dept.subjects = subjects;
+  dept.labs = labs;
   dept.numSections = numSections;
   dept.days = days;
   dept.periods = periods;
+  dept.maxTheoryPerDay = maxTheoryPerDay;
+  dept.maxLabPerDay = maxLabPerDay;
   dept.periodsPerWeek = periodsPerWeekInput;
+  dept.labPeriodsPerWeek = labPeriodsPerWeekInput;
   dept.timeSlots = timeSlotsInput;
+  dept.continuousPeriods = continuousPeriodsInput;
 
   // Generate timetables with clash-free algorithm
   dept.timetables = generateClashFreeTimetablesForDept(dept);
@@ -825,79 +882,241 @@ cfgSave.addEventListener('click', requireAuth(()=> {
 */
 function generateClashFreeTimetablesForDept(dept){
   const subjects = dept.subjects.slice();
+  const labs = dept.labs || [];
   const days = dept.days;
   const periods = dept.periods;
   const numSections = dept.numSections;
   const faculty = dept.faculty || [];
   const periodsPerWeek = dept.periodsPerWeek || [];
+  const labPeriodsPerWeek = dept.labPeriodsPerWeek || [];
+  const continuousPeriods = dept.continuousPeriods || [];
+  const maxTheoryPerDay = 1; // Each subject appears only once per day
+  const maxLabPerDay = 1;
 
-  // Create a weighted list of subjects based on periodsPerWeek
-  const weightedSubjects = [];
-  subjects.forEach((subject, i) => {
-    const count = periodsPerWeek[i] || 1; // Default to 1 if not specified
-    for (let j = 0; j < count; j++) {
-      weightedSubjects.push(subject);
-    }
-  });
-
-  // build map subject -> teachers
+  // build map subject/lab -> teachers
   const subjMap = {};
   for(const f of faculty){
     if(!subjMap[f.subject]) subjMap[f.subject] = [];
     subjMap[f.subject].push(f.name);
   }
-  // fallback: if some subject has no teacher, it will be TBA
+  
+  // Initialize timetables
   const timetables = {};
   for(let s=1;s<=numSections;s++){
-    timetables[`Section ${s}`] = Array.from({length:days}, ()=> Array.from({length:periods}, ()=> ({subject:'', teacher:''})));
+    timetables[`Section ${s}`] = Array.from({length:days}, ()=> Array.from({length:periods}, ()=> ({subject:'', teacher:'', type:''})));
   }
 
-  // track (day,period) -> set of teachers assigned (to avoid duplicates)
-  const slotAssignedTeachers = {}; // key: `${d}-${p}` -> Set()
+  // Track assigned teachers per slot
+  const slotAssignedTeachers = {};
 
-  // for some subject ordering, create a queue per section to rotate subjects
-  const subjQueues = {};
+  // Track daily usage - each subject can appear only once per day
+  const dailySubjectTracker = {};
   for(let s=1;s<=numSections;s++){
-    // start offset so sections don't all pick same subject in same order
-    const offset = (s-1) % weightedSubjects.length;
-    subjQueues[s] = weightedSubjects.slice(offset).concat(weightedSubjects.slice(0, offset));
+    dailySubjectTracker[s] = Array.from({length:days}, ()=> new Set());
   }
 
-  // iterate day & period, then assign each section
+  // Track lab usage across all sections to prevent clashes
+  const labSlotTracker = {}; // key: "day-period", value: Set of labs in use
+
+  // Assignment trackers
+  const subjectAssignmentTracker = {};
+  subjects.forEach((subject, i) => {
+    subjectAssignmentTracker[subject] = {
+      totalAssigned: 0,
+      periodsPerWeek: periodsPerWeek[i] || 1,
+      continuousPeriods: continuousPeriods[i] || 0
+    };
+  });
+
+  const labAssignmentTracker = {};
+  labs.forEach((lab, i) => {
+    labAssignmentTracker[lab] = {
+      totalAssigned: 0,
+      periodsPerWeek: labPeriodsPerWeek[i] || 3
+    };
+  });
+
+  // Create shuffled queues for each section
+  const subjectQueues = {};
+  const labQueues = {};
+  
+  for(let s=1;s<=numSections;s++){
+    // Create shuffled subject queue
+    const shuffledSubjects = [...subjects].sort(() => Math.random() - 0.5);
+    subjectQueues[s] = [];
+    shuffledSubjects.forEach((subject, i) => {
+      const count = periodsPerWeek[i] || 1;
+      for (let j = 0; j < count; j++) {
+        subjectQueues[s].push(subject);
+      }
+    });
+    
+    // Create shuffled lab queue - each lab appears exactly once per week (3-hour block)
+    const shuffledLabs = [...labs].sort(() => Math.random() - 0.5);
+    labQueues[s] = [];
+    shuffledLabs.forEach((lab, i) => {
+      const count = labPeriodsPerWeek[i] || 1; // Each lab once per week (3-hour block)
+      for (let j = 0; j < count; j++) {
+        labQueues[s].push(lab);
+      }
+    });
+  }
+
+  // Dedicated lab scheduling for 3 sections with 3 labs - each section gets all labs once per week
+  const labSchedule = {}; // Track lab assignments: lab -> [sections assigned]
+  labs.forEach(lab => labSchedule[lab] = new Set());
+  
+  // Create rotation pattern for lab timing shuffling
+  const labRotationPatterns = {
+    1: [0, 1, 2], // Section 1: ADS, JAVA, PYTHON
+    2: [1, 2, 0], // Section 2: JAVA, PYTHON, ADS  
+    3: [2, 0, 1]  // Section 3: PYTHON, ADS, JAVA
+  };
+  
+  // Schedule each lab for each section with rotation
+  for(let labIndex = 0; labIndex < labs.length; labIndex++){
+    const lab = labs[labIndex];
+    
+    for(let section = 1; section <= numSections; section++){
+      // Get rotation pattern for this section
+      const rotationPattern = labRotationPatterns[section];
+      const thisLabPosition = rotationPattern[labIndex];
+      
+      // Find available time slot with rotation offset
+      let scheduled = false;
+      
+      for(let d = 0; d < days && !scheduled; d++){
+        // Apply rotation: different starting day for each lab/section combination
+        const rotationOffset = (section - 1 + labIndex) % days;
+        const actualDay = (d + rotationOffset) % days;
+        
+        for(let p = 0; p < periods - 2; p++){
+          // Check if this lab is already scheduled for this section
+          if(labSchedule[lab].has(section)) continue;
+          
+          // Check for clashes with other sections having this lab at same time
+          let labClash = false;
+          for(let otherSection = 1; otherSection <= numSections; otherSection++){
+            if(otherSection !== section && 
+               timetables[`Section ${otherSection}`][actualDay][p].subject === lab){
+              labClash = true;
+              break;
+            }
+          }
+          if(labClash) continue;
+          
+          // Check if we can place a 3-period lab here
+          const canPlaceLab = (p === 0 || timetables[`Section ${section}`][actualDay][p-1].type !== 'lab') && 
+                             p+2 < periods &&
+                             timetables[`Section ${section}`][actualDay][p].subject === '' &&
+                             timetables[`Section ${section}`][actualDay][p+1].subject === '' &&
+                             timetables[`Section ${section}`][actualDay][p+2].subject === '';
+          
+          if(canPlaceLab) {
+            const teachers = subjMap[lab] || [];
+            let chosenTeacher = null;
+            
+            // Check teacher availability for all 3 periods
+            for(const t of teachers){
+              const available = !slotAssignedTeachers[`${actualDay}-${p}`]?.has(t) &&
+                               !slotAssignedTeachers[`${actualDay}-${p+1}`]?.has(t) &&
+                               !slotAssignedTeachers[`${actualDay}-${p+2}`]?.has(t);
+              if(available){
+                chosenTeacher = t;
+                break;
+              }
+            }
+            
+            if(chosenTeacher){
+              // Assign 3-period lab block
+              for(let i = 0; i < 3; i++){
+                timetables[`Section ${section}`][actualDay][p+i] = { 
+                  subject: lab, 
+                  teacher: chosenTeacher, 
+                  type: 'lab' 
+                };
+                slotAssignedTeachers[`${actualDay}-${p+i}`] = slotAssignedTeachers[`${actualDay}-${p+i}`] || new Set();
+                slotAssignedTeachers[`${actualDay}-${p+i}`].add(chosenTeacher);
+              }
+              
+              // Mark this lab as scheduled for this section
+              labSchedule[lab].add(section);
+              labAssignmentTracker[lab].totalAssigned += 3;
+              scheduled = true;
+              break;
+            }
+          }
+        }
+        
+        if(scheduled) break;
+      }
+    }
+  }
+
+  // Assign theory subjects - each appears only once per day
   for(let d=0; d<days; d++){
     for(let p=0; p<periods; p++){
       const slotKey = `${d}-${p}`;
-      slotAssignedTeachers[slotKey] = new Set();
+      slotAssignedTeachers[slotKey] = slotAssignedTeachers[slotKey] || new Set();
+      
       for(let s=1; s<=numSections; s++){
-        let assigned = false;
-        // try all subjects in rotation order for this section
-        const q = subjQueues[s];
-        for(let qidx=0; qidx<q.length; qidx++){
-          const subj = q[(p + qidx) % q.length]; // some deterministic variation
-          const teachers = subjMap[subj] || [];
-          // try to pick a teacher not used in this slot
+        // Skip if this slot already has a lab
+        if(timetables[`Section ${s}`][d][p].subject !== '') continue;
+        
+        // Get available subjects for this day (not already used)
+        const availableSubjects = [];
+        const subjectQueue = subjectQueues[s];
+        
+        for(const subject of subjectQueue){
+          if(dailySubjectTracker[s][d].has(subject)) continue;
+          if(subjectAssignmentTracker[subject].totalAssigned >= subjectAssignmentTracker[subject].periodsPerWeek) continue;
+          availableSubjects.push(subject);
+        }
+        
+        if(availableSubjects.length === 0) {
+          // All subjects used today, pick any that needs more periods
+          for(const subject of subjectQueue){
+            if(subjectAssignmentTracker[subject].totalAssigned < subjectAssignmentTracker[subject].periodsPerWeek) {
+              availableSubjects.push(subject);
+              break;
+            }
+          }
+        }
+        
+        // Assign the first available subject
+        if(availableSubjects.length > 0){
+          const subject = availableSubjects[0];
+          const teachers = subjMap[subject] || [];
           let chosenTeacher = null;
+          
           for(const t of teachers){
             if(!slotAssignedTeachers[slotKey].has(t)){
               chosenTeacher = t;
               break;
             }
           }
+          
           if(chosenTeacher){
-            timetables[`Section ${s}`][d][p] = { subject: subj, teacher: chosenTeacher };
+            timetables[`Section ${s}`][d][p] = { 
+              subject: subject, 
+              teacher: chosenTeacher, 
+              type: 'theory' 
+            };
             slotAssignedTeachers[slotKey].add(chosenTeacher);
-            assigned = true;
-            break;
+            subjectAssignmentTracker[subject].totalAssigned++;
+            dailySubjectTracker[s][d].add(subject);
+          } else {
+            // No teacher available, leave empty
+            timetables[`Section ${s}`][d][p] = { subject: '', teacher: '', type: '' };
           }
-        }
-        if(!assigned){
-          // no teacher available for chosen subjects -> assign subject but teacher TBA
-          const subjFallback = weightedSubjects[(p + s -1) % weightedSubjects.length];
-          timetables[`Section ${s}`][d][p] = { subject: subjFallback, teacher: 'TBA' };
+        } else {
+          // No subjects need more periods, leave empty
+          timetables[`Section ${s}`][d][p] = { subject: '', teacher: '', type: '' };
         }
       }
     }
   }
+  
   return timetables;
 }
 
@@ -964,7 +1183,9 @@ function renderTimetable(deptName, sectionName){
   table.forEach((row,di)=>{
     html += `<tr><td style="font-weight:700">Day ${di+1}</td>`;
     row.forEach(cell=>{
-      html += `<td><div class="subject-pill">${escapeHtml(cell.subject)}</div><div class="small">${escapeHtml(cell.teacher)}</div></td>`;
+      const typeClass = cell.type === 'lab' ? 'lab-pill' : 'theory-pill';
+      const typeLabel = cell.type === 'lab' ? '[LAB]' : '[THEORY]';
+      html += `<td><div class="subject-pill ${typeClass}">${escapeHtml(cell.subject)}</div><div class="small">${escapeHtml(cell.teacher)}</div><div class="small type-label">${typeLabel}</div></td>`;
     });
     html += `</tr>`;
   });
